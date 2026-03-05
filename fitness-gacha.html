@@ -1,0 +1,2692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitGacha — Roll for Rewards</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #f0c060;
+    --gold-light: #ffe08a;
+    --purple: #9b59b6;
+    --purple-light: #c39bd3;
+    --blue: #3498db;
+    --blue-light: #85c1e9;
+    --gray: #bdc3c7;
+    --bg: #0d0d1a;
+    --bg2: #131326;
+    --bg3: #1a1a33;
+    --surface: #1e1e3a;
+    --surface2: #252548;
+    --text: #e8e0d5;
+    --text-dim: #8a8095;
+    --star5: #f0c060;
+    --star4: #9b59b6;
+    --star3: #7f8c8d;
+    --accent: #e74c3c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(2px 2px at 10% 60%, rgba(240,192,96,0.3) 0%, transparent 100%),
+      radial-gradient(2px 2px at 70% 10%, rgba(155,89,182,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 30px 0 20px;
+  }
+
+  header h1 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), #c8860a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    letter-spacing: 2px;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 6px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  /* Credits bar */
+  .credits-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 16px 0;
+    padding: 12px 24px;
+    background: var(--surface);
+    border: 1px solid rgba(240,192,96,0.2);
+    border-radius: 50px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .credits-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .credits-icon {
+    width: 24px;
+    height: 24px;
+    background: radial-gradient(circle, var(--gold-light), var(--gold));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .credits-amount {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .credits-label {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .pity-display {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .pity-item {
+    text-align: center;
+  }
+
+  .pity-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .pity-val.gold { color: var(--gold); }
+  .pity-val.purple { color: var(--purple-light); }
+
+  .pity-lbl {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+  }
+
+  /* Tab panels */
+  .panel { display: none; padding: 24px 0; }
+  .panel.active { display: block; }
+
+  /* === QUESTS PANEL === */
+  .quest-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .quest-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+  }
+
+  .quest-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .quest-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quest-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--gold);
+    opacity: 0.6;
+  }
+
+  .quest-card.daily::before { background: #3498db; }
+  .quest-card.repeatable::before { background: #2ecc71; }
+
+  .quest-card:hover {
+    border-color: rgba(240,192,96,0.2);
+    transform: translateY(-1px);
+  }
+
+  .quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .quest-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .quest-reward {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .quest-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .quest-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--gold));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .progress-text {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    min-width: 35px;
+    text-align: right;
+  }
+
+  .quest-btn {
+    width: 100%;
+    padding: 8px;
+    background: rgba(240,192,96,0.1);
+    border: 1px solid rgba(240,192,96,0.3);
+    border-radius: 8px;
+    color: var(--gold);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .quest-btn:hover {
+    background: rgba(240,192,96,0.2);
+    border-color: var(--gold);
+  }
+
+  .quest-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .quest-btn.claim {
+    background: rgba(240,192,96,0.25);
+    border-color: var(--gold);
+    animation: pulse-gold 1.5s infinite;
+  }
+
+  @keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(240,192,96,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(240,192,96,0); }
+  }
+
+  /* === GACHA PANEL === */
+  .gacha-banner {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--bg3) 50%, var(--surface) 100%);
+    border: 1px solid rgba(240,192,96,0.2);
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gacha-banner::after {
+    content: '✦';
+    position: absolute;
+    font-size: 200px;
+    opacity: 0.02;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    pointer-events: none;
+  }
+
+  .gacha-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.4rem;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+
+  .gacha-subtitle {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .rate-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .rate-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+
+  .star-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .star-badge.s5 {
+    background: rgba(240,192,96,0.2);
+    color: var(--star5);
+    border: 1px solid rgba(240,192,96,0.4);
+  }
+
+  .star-badge.s4 {
+    background: rgba(155,89,182,0.2);
+    color: var(--purple-light);
+    border: 1px solid rgba(155,89,182,0.4);
+  }
+
+  .star-badge.s3 {
+    background: rgba(127,140,141,0.15);
+    color: var(--gray);
+    border: 1px solid rgba(127,140,141,0.3);
+  }
+
+  .pull-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .pull-btn {
+    padding: 14px 28px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pull-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .pull-btn:hover::after { opacity: 0.05; }
+  .pull-btn:active { transform: scale(0.97); }
+
+  .pull-btn.single {
+    background: linear-gradient(135deg, #2c3e50, #3d5166);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .pull-btn.ten {
+    background: linear-gradient(135deg, #7d5a00, #c8860a, #f0c060);
+    color: #1a1000;
+    font-weight: 700;
+  }
+
+  .pull-btn .cost {
+    display: block;
+    font-size: 0.65rem;
+    opacity: 0.75;
+    margin-top: 2px;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 1px;
+  }
+
+  .pull-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* Pity tracker visual */
+  .pity-tracker {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+
+  .pity-tracker-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .pity-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pity-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pity-row-label {
+    font-size: 0.75rem;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .pity-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .pity-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    position: relative;
+  }
+
+  .pity-bar-fill.gold-bar {
+    background: linear-gradient(90deg, #7d5a00, var(--gold));
+  }
+
+  .pity-bar-fill.purple-bar {
+    background: linear-gradient(90deg, #5b2c8d, var(--purple-light));
+  }
+
+  .pity-count {
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .pity-count.gold { color: var(--gold); }
+  .pity-count.purple { color: var(--purple-light); }
+
+  /* === PULL ANIMATION OVERLAY === */
+  .pull-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .pull-overlay.visible { display: flex; }
+
+  .pull-bg-effect {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .pull-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 700px;
+    padding: 20px;
+    z-index: 1;
+  }
+
+  .pull-card {
+    width: 110px;
+    min-height: 160px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.5) translateY(40px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .pull-card.revealed {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  .pull-card.star5 {
+    background: linear-gradient(160deg, #3d2800, #7d5a00, #c8860a);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 20px rgba(240,192,96,0.4), inset 0 0 20px rgba(240,192,96,0.1);
+  }
+
+  .pull-card.star4 {
+    background: linear-gradient(160deg, #1a0d2e, #3d1f6e, #6a3ba0);
+    border: 2px solid var(--purple-light);
+    box-shadow: 0 0 15px rgba(155,89,182,0.4);
+  }
+
+  .pull-card.star3 {
+    background: linear-gradient(160deg, #1a1a2e, #2c2c4a, #3d3d5c);
+    border: 2px solid rgba(127,140,141,0.5);
+  }
+
+  .card-stars {
+    font-size: 0.7rem;
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+  }
+
+  .card-emoji {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+
+  .card-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    line-height: 1.3;
+    letter-spacing: 0.5px;
+  }
+
+  .card-name.star5 { color: var(--gold-light); }
+  .card-name.star4 { color: var(--purple-light); }
+  .card-name.star3 { color: var(--gray); }
+
+  .card-type-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.55rem;
+    padding: 2px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .badge-wallet {
+    background: rgba(46,204,113,0.2);
+    color: #2ecc71;
+    border: 1px solid rgba(46,204,113,0.3);
+  }
+
+  .badge-health {
+    background: rgba(231,76,60,0.2);
+    color: #e74c3c;
+    border: 1px solid rgba(231,76,60,0.3);
+  }
+
+  .badge-lol {
+    background: rgba(127,140,141,0.2);
+    color: var(--gray);
+    border: 1px solid rgba(127,140,141,0.2);
+  }
+
+  /* Shimmer effect for 5★ */
+  .pull-card.star5::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(transparent 0deg, rgba(240,192,96,0.15) 60deg, transparent 120deg);
+    animation: shimmer-spin 3s linear infinite;
+  }
+
+  @keyframes shimmer-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .overlay-skip {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text-dim);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    z-index: 2;
+  }
+
+  .overlay-skip:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--text);
+  }
+
+  .overlay-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    margin-bottom: 20px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .overlay-title.show { opacity: 1; }
+
+  /* Stars burst particle */
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    animation: particle-fly 1.5s ease-out forwards;
+    font-size: 1rem;
+    z-index: 0;
+  }
+
+  @keyframes particle-fly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+  }
+
+  /* === HISTORY PANEL === */
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.82rem;
+  }
+
+  .history-star {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+  }
+
+  .history-star.s5 { color: var(--gold); }
+  .history-star.s4 { color: var(--purple-light); }
+  .history-star.s3 { color: var(--gray); }
+
+  .history-emoji { font-size: 1.1rem; }
+
+  .history-name {
+    flex: 1;
+    color: var(--text);
+  }
+
+  .history-time {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state .big-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  .empty-state p {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid rgba(240,192,96,0.3);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    z-index: 2000;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+    text-align: center;
+  }
+
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Decorative divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 20px;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+
+  /* History filter bar */
+  .history-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .filter-btn.active-all {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.3);
+    color: var(--text);
+  }
+
+  .filter-btn.active-5 {
+    background: rgba(240,192,96,0.15);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .filter-btn.active-4 {
+    background: rgba(155,89,182,0.15);
+    border-color: var(--purple-light);
+    color: var(--purple-light);
+  }
+
+  .filter-btn.active-3 {
+    background: rgba(127,140,141,0.1);
+    border-color: rgba(127,140,141,0.4);
+    color: var(--gray);
+  }
+
+  .filter-btn.active-wallet {
+    background: rgba(46,204,113,0.12);
+    border-color: rgba(46,204,113,0.5);
+    color: #2ecc71;
+  }
+
+  .filter-btn.active-health {
+    background: rgba(231,76,60,0.12);
+    border-color: rgba(231,76,60,0.4);
+    color: #e74c3c;
+  }
+
+  .history-item {
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .history-item:hover {
+    background: var(--surface2);
+    transform: translateX(3px);
+  }
+
+  .history-item.clickable-hint::after {
+    content: '›';
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    margin-left: auto;
+    padding-left: 8px;
+  }
+
+  /* Detail Modal */
+  .detail-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .detail-modal-overlay.visible { display: flex; }
+
+  .detail-modal {
+    background: var(--bg3);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes modal-pop {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .detail-modal.modal-5 {
+    border: 1px solid rgba(240,192,96,0.5);
+    box-shadow: 0 0 40px rgba(240,192,96,0.2), inset 0 0 60px rgba(240,192,96,0.04);
+  }
+
+  .detail-modal.modal-4 {
+    border: 1px solid rgba(155,89,182,0.5);
+    box-shadow: 0 0 40px rgba(155,89,182,0.2), inset 0 0 60px rgba(155,89,182,0.04);
+  }
+
+  .detail-modal.modal-3 {
+    border: 1px solid rgba(127,140,141,0.3);
+  }
+
+  .detail-modal-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 20px;
+  }
+
+  .detail-modal.modal-5 .detail-modal-glow {
+    background: radial-gradient(ellipse at 50% 0%, rgba(240,192,96,0.12) 0%, transparent 70%);
+  }
+
+  .detail-modal.modal-4 .detail-modal-glow {
+    background: radial-gradient(ellipse at 50% 0%, rgba(155,89,182,0.12) 0%, transparent 70%);
+  }
+
+  .modal-stars {
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+
+  .modal-emoji {
+    font-size: 3.5rem;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .modal-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .modal-name.s5 { color: var(--gold); }
+  .modal-name.s4 { color: var(--purple-light); }
+  .modal-name.s3 { color: var(--gray); }
+
+  .modal-type-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .modal-desc {
+    font-size: 0.88rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .modal-flavor {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-bottom: 20px;
+    opacity: 0.7;
+  }
+
+  .modal-pulled-at {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .modal-close {
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.25);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  /* ===  INVENTORY PANEL === */
+  .inv-badge {
+    display: inline-block;
+    background: var(--gold);
+    color: #1a1000;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    margin-left: 4px;
+    vertical-align: middle;
+  }
+
+  .inv-header-row {
+    margin-bottom: 20px;
+  }
+
+  .inv-summary {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .inv-summary-chip {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .inv-summary-chip.chip-5 {
+    background: rgba(240,192,96,0.1);
+    border: 1px solid rgba(240,192,96,0.3);
+    color: var(--gold);
+  }
+
+  .inv-summary-chip.chip-4 {
+    background: rgba(155,89,182,0.1);
+    border: 1px solid rgba(155,89,182,0.3);
+    color: var(--purple-light);
+  }
+
+  .inv-summary-chip.chip-redeemed {
+    background: rgba(127,140,141,0.08);
+    border: 1px solid rgba(127,140,141,0.2);
+    color: var(--gray);
+  }
+
+  .inv-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .inv-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  .inv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 12px;
+  }
+
+  .inv-card {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 16px 12px 14px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .inv-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .inv-card.inv-5 {
+    border: 1px solid rgba(240,192,96,0.4);
+    box-shadow: 0 0 16px rgba(240,192,96,0.08);
+  }
+
+  .inv-card.inv-5:hover {
+    box-shadow: 0 4px 24px rgba(240,192,96,0.2);
+    border-color: var(--gold);
+  }
+
+  .inv-card.inv-4 {
+    border: 1px solid rgba(155,89,182,0.4);
+    box-shadow: 0 0 16px rgba(155,89,182,0.08);
+  }
+
+  .inv-card.inv-4:hover {
+    box-shadow: 0 4px 24px rgba(155,89,182,0.2);
+    border-color: var(--purple-light);
+  }
+
+  .inv-card.inv-redeemed {
+    border: 1px solid rgba(127,140,141,0.2);
+    opacity: 0.5;
+    cursor: default;
+    filter: grayscale(0.4);
+  }
+
+  .inv-card.inv-redeemed:hover { transform: none; }
+
+  .inv-card-shine {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 14px;
+  }
+
+  .inv-5 .inv-card-shine {
+    background: radial-gradient(ellipse at 50% 0%, rgba(240,192,96,0.1) 0%, transparent 65%);
+  }
+
+  .inv-4 .inv-card-shine {
+    background: radial-gradient(ellipse at 50% 0%, rgba(155,89,182,0.1) 0%, transparent 65%);
+  }
+
+  .inv-card-stars {
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .inv-card-emoji {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .inv-card-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .inv-card-name.n5 { color: var(--gold-light); }
+  .inv-card-name.n4 { color: var(--purple-light); }
+  .inv-card-name.n-redeemed { color: var(--text-dim); }
+
+  .inv-card-qty {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .inv-card-qty.qty-5 { color: var(--gold); }
+  .inv-card-qty.qty-4 { color: var(--purple-light); }
+
+  .inv-redeem-btn {
+    margin-top: 8px;
+    width: 100%;
+    padding: 6px 0;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .inv-5 .inv-redeem-btn {
+    background: rgba(240,192,96,0.2);
+    color: var(--gold);
+    border: 1px solid rgba(240,192,96,0.4);
+  }
+
+  .inv-5 .inv-redeem-btn:hover {
+    background: rgba(240,192,96,0.35);
+  }
+
+  .inv-4 .inv-redeem-btn {
+    background: rgba(155,89,182,0.2);
+    color: var(--purple-light);
+    border: 1px solid rgba(155,89,182,0.4);
+  }
+
+  .inv-4 .inv-redeem-btn:hover {
+    background: rgba(155,89,182,0.35);
+  }
+
+  .inv-redeemed-stamp {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: rgba(127,140,141,0.1);
+    color: var(--gray);
+    border: 1px solid rgba(127,140,141,0.2);
+  }
+
+  .inv-empty {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    padding: 16px 0 4px;
+    font-style: italic;
+    opacity: 0.6;
+  }
+
+  .redeem-confirm-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--gold);
+    background: rgba(240,192,96,0.2);
+    color: var(--gold);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    font-weight: 700;
+  }
+
+  .redeem-confirm-btn:hover {
+    background: rgba(240,192,96,0.35);
+  }
+
+  /* === END INVENTORY === */
+
+  /* === RESET CORNER BUTTON === */
+  .reset-corner-btn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 500;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(231,76,60,0.5);
+    background: rgba(231,76,60,0.12);
+    color: #e74c3c;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .reset-corner-btn:hover {
+    background: rgba(231,76,60,0.25);
+    border-color: #e74c3c;
+    box-shadow: 0 0 12px rgba(231,76,60,0.3);
+    transform: scale(1.08);
+  }
+
+  /* === END RESET CORNER === */
+
+  /* Reset confirm modal */
+  .reset-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 4000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+
+  .reset-modal-overlay.visible { display: flex; }
+
+  .reset-modal {
+    background: var(--bg3);
+    border: 1px solid rgba(231,76,60,0.4);
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(231,76,60,0.15);
+    animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+
+  .reset-modal-icon {
+    font-size: 2.8rem;
+    margin-bottom: 12px;
+  }
+
+  .reset-modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: #e74c3c;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+
+  .reset-modal-body {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  .reset-warning-box {
+    background: rgba(231,76,60,0.07);
+    border: 1px solid rgba(231,76,60,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    color: #e88080;
+    margin-bottom: 24px;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  .reset-warning-box ul {
+    margin: 6px 0 0 16px;
+  }
+
+  .reset-warning-box li {
+    margin-bottom: 3px;
+  }
+
+  .reset-modal-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .reset-cancel-btn {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+
+  .reset-cancel-btn:hover { background: rgba(255,255,255,0.1); }
+
+  .reset-confirm-btn {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid rgba(231,76,60,0.5);
+    background: rgba(231,76,60,0.15);
+    color: #e74c3c;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+
+  .reset-confirm-btn:hover {
+    background: rgba(231,76,60,0.3);
+    border-color: #e74c3c;
+  }
+
+  /* === END DEBUG / RESET === */
+
+  .auto-tag {
+    display: inline-block;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.58rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(52,152,219,0.15);
+    border: 1px solid rgba(52,152,219,0.3);
+    color: #85c1e9;
+    letter-spacing: 1px;
+    vertical-align: middle;
+    margin-left: 4px;
+    font-weight: 400;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 16px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .stat-lbl {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  /* Guarantee banner */
+  .guarantee-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 14px;
+  }
+
+  .guarantee-note span.hl {
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  @media (max-width: 600px) {
+    .pull-buttons { flex-direction: column; align-items: center; }
+    .pull-btn { width: 220px; }
+    .rate-info { gap: 12px; }
+    .credits-bar { flex-direction: column; gap: 10px; }
+    .pity-display { border-left: none; border-top: 1px solid rgba(255,255,255,0.1); padding-left: 0; padding-top: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Reset button fixed top-left -->
+  <button class="reset-corner-btn" onclick="openResetModal()" title="Reset All Data">⚠</button>
+
+  <header>
+    <h1>✦ FitGacha ✦</h1>
+    <p>Exercise · Earn · <span ondblclick="debugAddCredits()" style="cursor:default;">Wish</span> · Treat Yourself</p>
+  </header>
+
+  <div class="credits-bar">
+    <div class="credits-display">
+      <div class="credits-icon">✦</div>
+      <div>
+        <div class="credits-amount" id="creditsDisplay">0</div>
+        <div class="credits-label">Credits</div>
+      </div>
+    </div>
+    <div class="pity-display">
+      <div class="pity-item">
+        <div class="pity-val gold" id="pity5Display">0/50</div>
+        <div class="pity-lbl">5★ Pity</div>
+      </div>
+      <div class="pity-item">
+        <div class="pity-val purple" id="pity4Display">0/10</div>
+        <div class="pity-lbl">4★ Pity</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('quests')">⚔ Quests</button>
+    <button class="tab" onclick="switchTab('gacha')">✦ Wish</button>
+    <button class="tab" onclick="switchTab('inventory')">🎒 Inventory <span class="inv-badge" id="invBadge" style="display:none"></span></button>
+    <button class="tab" onclick="switchTab('history')">📜 History</button>
+  </div>
+
+  <!-- QUESTS PANEL -->
+  <div class="panel active" id="panel-quests">
+    <div class="quest-section-title">Daily Quests — Resets Daily</div>
+    <div class="quest-grid" id="dailyQuestGrid"></div>
+
+    <div class="quest-section-title">Repeatable Quests — Do as Many as You Want</div>
+    <div class="quest-grid" id="repeatableQuestGrid"></div>
+  </div>
+
+  <!-- GACHA PANEL -->
+  <div class="panel" id="panel-gacha">
+    <div class="gacha-banner">
+      <div class="gacha-title">✦ Treat Banner ✦</div>
+      <div class="gacha-subtitle">Roll for sweet rewards &amp; glorious gains</div>
+
+      <div class="rate-info">
+        <div class="rate-item">
+          <span class="star-badge s5">5★</span>
+          <span style="color:var(--text-dim)">2% · Hard pity 50</span>
+        </div>
+        <div class="rate-item">
+          <span class="star-badge s4">4★</span>
+          <span style="color:var(--text-dim)">13% · Soft pity 9</span>
+        </div>
+        <div class="rate-item">
+          <span class="star-badge s3">3★</span>
+          <span style="color:var(--text-dim)">85% base</span>
+        </div>
+      </div>
+
+      <div class="pity-tracker">
+        <div class="pity-tracker-title">✦ Pity Progress</div>
+        <div class="pity-bars">
+          <div class="pity-row">
+            <div class="pity-row-label"><span style="color:var(--gold)">★★★★★</span></div>
+            <div class="pity-bar-track">
+              <div class="pity-bar-fill gold-bar" id="pityBar5" style="width:0%"></div>
+            </div>
+            <div class="pity-count gold" id="pityCount5">0 / 50</div>
+          </div>
+          <div class="pity-row">
+            <div class="pity-row-label"><span style="color:var(--purple-light)">★★★★</span></div>
+            <div class="pity-bar-track">
+              <div class="pity-bar-fill purple-bar" id="pityBar4" style="width:0%"></div>
+            </div>
+            <div class="pity-count purple" id="pityCount4">0 / 10</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pull-buttons">
+        <button class="pull-btn single" onclick="doPull(1)">
+          Wish ×1
+          <span class="cost">50 Credits</span>
+        </button>
+        <button class="pull-btn ten" onclick="doPull(10)">
+          ✦ Wish ×10 ✦
+          <span class="cost">500 Credits · Guaranteed 4★+</span>
+        </button>
+      </div>
+
+      <div class="guarantee-note">
+        ✦ 10-pull guarantees at least one <span class="hl">4★</span> · Hard pity at <span class="hl">50 pulls</span>
+      </div>
+    </div>
+
+    <div class="divider">Reward Pool</div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">
+      <!-- 5★ rewards -->
+      <div style="padding:12px; background:var(--surface); border:1px solid rgba(240,192,96,0.25); border-radius:10px; border-left: 3px solid var(--gold);">
+        <div style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--gold); letter-spacing:2px; margin-bottom:8px;">✦ 5★ LEGENDARY TREATS</div>
+        <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.8;">
+          ☕ Starbucks Cheat Drink<br>
+          🍕 Full Cheat Meal Day<br>
+          🛍️ $20 Wallet Credit<br>
+          🍦 Ice Cream Binge Night<br>
+          🎮 Guilt-Free Rest Day
+        </div>
+      </div>
+      <!-- 4★ rewards -->
+      <div style="padding:12px; background:var(--surface); border:1px solid rgba(155,89,182,0.25); border-radius:10px; border-left: 3px solid var(--purple-light);">
+        <div style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--purple-light); letter-spacing:2px; margin-bottom:8px;">★ 4★ EPIC REWARDS</div>
+        <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.8;">
+          🍫 +300 kcal Leeway<br>
+          🧃 Fancy Drink Unlock<br>
+          🍟 One Cheat Snack<br>
+          💰 $10 Wallet Credit<br>
+          🛁 Spa / Self-Care Hour
+        </div>
+      </div>
+      <!-- 3★ rewards -->
+      <div style="padding:12px; background:var(--surface); border:1px solid rgba(127,140,141,0.15); border-radius:10px; border-left: 3px solid var(--star3);">
+        <div style="font-family:'Cinzel',serif; font-size:0.65rem; color:var(--gray); letter-spacing:2px; margin-bottom:8px;">· 3★ COMMON DROPS</div>
+        <div style="font-size:0.78rem; color:var(--text-dim); line-height:1.8;">
+          💬 Motivational Quote™<br>
+          ✨ "Keep Going!" Badge<br>
+          🌟 You're Valid Coupon<br>
+          📿 Participation Trophy<br>
+          🙏 The Universe Sees You
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY PANEL -->
+  <div class="panel" id="panel-inventory">
+    <div class="inv-header-row">
+      <div class="inv-summary" id="invSummary"></div>
+    </div>
+    <div class="inv-section-title" id="inv5Title">✦ 5★ LEGENDARY — Unredeemed</div>
+    <div class="inv-grid" id="inv5Grid"></div>
+    <div class="inv-section-title" id="inv4Title" style="margin-top:24px;">★ 4★ EPIC — Unredeemed</div>
+    <div class="inv-grid" id="inv4Grid"></div>
+    <div class="inv-section-title" style="margin-top:28px; opacity:0.5;">— Redeemed —</div>
+    <div class="inv-grid" id="invRedeemedGrid"></div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div class="panel" id="panel-history">
+    <div class="stats-row" id="statsRow">
+      <div class="stat-chip">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">Total Pulls</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" id="stat5" style="color:var(--gold)">0</div>
+        <div class="stat-lbl">5★ Obtained</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" id="stat4" style="color:var(--purple-light)">0</div>
+        <div class="stat-lbl">4★ Obtained</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val" id="statCredEarned">0</div>
+        <div class="stat-lbl">Credits Earned</div>
+      </div>
+    </div>
+
+    <div class="history-filters" id="historyFilters">
+      <button class="filter-btn active-all" data-filter="all" onclick="setFilter('all')">All</button>
+      <button class="filter-btn" data-filter="5" onclick="setFilter('5')">★★★★★ 5★</button>
+      <button class="filter-btn" data-filter="4" onclick="setFilter('4')">★★★★ 4★</button>
+      <button class="filter-btn" data-filter="3" onclick="setFilter('3')">★★★ 3★</button>
+      <button class="filter-btn" data-filter="wallet" onclick="setFilter('wallet')">💰 Wallet</button>
+      <button class="filter-btn" data-filter="health" onclick="setFilter('health')">❤️ Health</button>
+    </div>
+
+    <div class="history-list" id="historyList">
+      <div class="empty-state">
+        <div class="big-icon">📜</div>
+        <p>No pulls yet. Complete quests and start wishing!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Redeem Confirm Modal -->
+<div class="detail-modal-overlay" id="redeemModal">
+  <div class="detail-modal" id="redeemModalInner">
+    <div class="detail-modal-glow"></div>
+    <div class="modal-stars" id="redeemStars"></div>
+    <span class="modal-emoji" id="redeemEmoji"></span>
+    <div class="modal-name" id="redeemName"></div>
+    <div class="modal-type-badge" id="redeemTypeBadge"></div>
+    <div class="modal-desc" id="redeemDesc" style="margin-bottom:8px;"></div>
+    <div class="modal-flavor" id="redeemFlavor"></div>
+    <div style="font-size:0.78rem; color:var(--text-dim); margin-bottom:20px; padding:10px 14px; background:rgba(255,200,0,0.05); border:1px solid rgba(255,200,0,0.12); border-radius:8px;">
+      Once redeemed, this coupon is <strong style="color:var(--gold)">marked as used</strong> and moved to your redeemed history.
+    </div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="modal-close" onclick="closeRedeemModal()">Cancel</button>
+      <button class="redeem-confirm-btn" id="redeemConfirmBtn" onclick="confirmRedeem()">✓ Redeem Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="detail-modal-overlay" id="detailModal">
+  <div class="detail-modal" id="detailModalInner">
+    <div class="detail-modal-glow"></div>
+    <div class="modal-stars" id="modalStars"></div>
+    <span class="modal-emoji" id="modalEmoji"></span>
+    <div class="modal-name" id="modalName"></div>
+    <div class="modal-type-badge" id="modalTypeBadge"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-flavor" id="modalFlavor"></div>
+    <div class="modal-pulled-at" id="modalPulledAt"></div>
+    <button class="modal-close" onclick="closeDetailModal()">CLOSE</button>
+  </div>
+</div>
+
+<!-- PULL ANIMATION OVERLAY -->
+<div class="pull-overlay" id="pullOverlay">
+  <div class="pull-bg-effect" id="pullBgEffect"></div>
+  <div class="overlay-title" id="overlayTitle">✦ Fate Revealed ✦</div>
+  <div class="pull-cards-container" id="pullCardsContainer"></div>
+  <button class="overlay-skip" id="skipBtn" onclick="closePullOverlay()">TAP TO CLOSE</button>
+</div>
+
+<!-- Honesty Warning Modal -->
+<div class="reset-modal-overlay" id="honestyModal">
+  <div class="reset-modal" style="border-color:rgba(230,126,34,0.5); box-shadow: 0 0 40px rgba(230,126,34,0.12);">
+    <div class="reset-modal-icon">🪞</div>
+    <div class="reset-modal-title" style="color:#e67e22;">Hey, slow down.</div>
+    <div class="reset-modal-body" style="font-size:0.95rem; color:var(--text); margin-bottom:14px; line-height:1.7;">
+      Only you can help you get fit.
+    </div>
+    <div class="reset-warning-box" style="border-color:rgba(230,126,34,0.2); background:rgba(230,126,34,0.05); color:#e8a87c; text-align:center; font-style:italic;">
+      "Make sure you're being truthful to yourself —<br>the credits don't make you fitter, the reps do."
+    </div>
+    <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:22px; line-height:1.6;">
+      We detected more than 5 completions in 5 seconds. If you genuinely crushed that many sets back-to-back, that's insane — tap below to continue. Otherwise, take a breath. 💪
+    </div>
+    <div class="reset-modal-btns">
+      <button class="reset-cancel-btn" onclick="rebukeSpamCredits()">Got it, I'll be honest</button>
+      <button class="reset-cancel-btn" style="border-color:rgba(230,126,34,0.4); color:#e67e22;" onclick="bypassHonesty()">I actually did the reps</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Modal -->
+<div class="reset-modal-overlay" id="resetModal">
+  <div class="reset-modal">
+    <div class="reset-modal-icon">⚠️</div>
+    <div class="reset-modal-title">Reset All Data?</div>
+    <div class="reset-modal-body">This will permanently wipe your entire FitGacha save.</div>
+    <div class="reset-warning-box">
+      <strong>Everything will be deleted:</strong>
+      <ul>
+        <li>All credits &amp; pity counters</li>
+        <li>All pull history</li>
+        <li>All inventory coupons (redeemed &amp; unredeemed)</li>
+        <li>All quest progress &amp; completions</li>
+        <li>All stats &amp; lifetime totals</li>
+      </ul>
+    </div>
+    <div class="reset-modal-btns">
+      <button class="reset-cancel-btn" onclick="closeResetModal()">Cancel</button>
+      <button class="reset-confirm-btn" onclick="confirmReset()">☠ Wipe Everything</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const REWARDS = {
+  5: [
+    { name: "Starbucks Cheat Drink", emoji: "☕", type: "health", desc: "Any drink, full sugar, no guilt!" },
+    { name: "Full Cheat Meal Day", emoji: "🍕", type: "health", desc: "One whole day of guilt-free eating." },
+    { name: "$20 Wallet Credit", emoji: "💸", type: "wallet", desc: "Treat yourself to something nice." },
+    { name: "Ice Cream Binge Night", emoji: "🍦", type: "health", desc: "Whole tub. No regrets." },
+    { name: "Guilt-Free Rest Day", emoji: "🎮", type: "health", desc: "Skip training entirely. You earned it." },
+  ],
+  4: [
+    { name: "+300 kcal Leeway", emoji: "🍫", type: "health", desc: "Extra 300 calories today, no tracking." },
+    { name: "Fancy Drink Unlock", emoji: "🧃", type: "health", desc: "Boba, juice, whatever you want." },
+    { name: "One Cheat Snack", emoji: "🍟", type: "health", desc: "That one snack you've been avoiding." },
+    { name: "$10 Wallet Credit", emoji: "💰", type: "wallet", desc: "Small treat fund unlocked." },
+    { name: "Self-Care Hour", emoji: "🛁", type: "health", desc: "Bath, spa, face mask — your call." },
+    { name: "Sweet Treat Pass", emoji: "🧁", type: "health", desc: "Dessert of your choice, guilt-free." },
+  ],
+  3: [
+    { name: '"Believe in Yourself"', emoji: "💬", type: "lol", desc: "A classic. Very inspiring. Wow." },
+    { name: '"You Can Do It!"', emoji: "✨", type: "lol", desc: "Thanks, very helpful, appreciated." },
+    { name: '"Keep Going!" Badge', emoji: "🏅", type: "lol", desc: "Digital badge. Not redeemable for anything." },
+    { name: '"Your Journey Matters"', emoji: "🌟", type: "lol", desc: "Deeply motivating. Truly." },
+    { name: '"You Are Enough"', emoji: "🙏", type: "lol", desc: "The universe smiles upon you." },
+    { name: '"Progress Not Perfection"', emoji: "📿", type: "lol", desc: "A phrase. A very good phrase." },
+    { name: '"One Step At A Time"', emoji: "👣", type: "lol", desc: "Step counter not included." },
+    { name: '"Stay Hydrated!"', emoji: "💧", type: "lol", desc: "Drink water. Revolutionary advice." },
+  ]
+};
+
+// Time window helper — returns which window we're currently in
+function getTimeWindow() {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';   // before noon
+  if (h < 18) return 'evening';   // noon–6pm
+  return 'night';                 // 6pm–midnight
+}
+
+function getTimeWindowLabel() {
+  const w = getTimeWindow();
+  if (w === 'morning') return { label: '🌅 Morning Activation', window: 'Before Noon', cutoff: 12 };
+  if (w === 'evening') return { label: '🌇 Evening Activation', window: 'Before 6 PM', cutoff: 18 };
+  return { label: '🌙 Night Owl Activation', window: 'Before Midnight', cutoff: 24 };
+}
+
+// DAILY QUEST DEFINITIONS — auto-filled, no manual logging
+// target/progress managed via state.questProgress
+const DAILY_QUESTS = [
+  {
+    id: 'daily1',
+    name: () => getTimeWindowLabel().label,
+    windowLabel: () => `Complete any repeatable exercise ${getTimeWindowLabel().window}`,
+    reward: 20,
+    target: 1,
+    // auto: increments when any repeatable is done in the current time window
+    autoKey: 'activation',
+  },
+  {
+    id: 'daily2',
+    name: () => '🔀 Variety Pack',
+    windowLabel: () => `Log ${2 - Math.min(2, new Set(state.questProgress['daily2_types'] || []).size)} more exercise type${new Set(state.questProgress['daily2_types'] || []).size >= 1 ? '' : 's'} today`,
+    reward: 30,
+    target: 2,
+    // auto: tracks unique exercise types done today
+    autoKey: 'types',
+  },
+  {
+    id: 'daily3',
+    name: () => '💯 The Centurion',
+    windowLabel: () => `Hit 100 total reps today`,
+    reward: 50,
+    target: 100,
+    // auto: tracks total reps from repeatables (each completion = 10 reps, plank = 1)
+    autoKey: 'reps',
+  },
+];
+
+const REPEATABLE_QUESTS = [
+  { id: 'rq_pushup', name: '10× Push-Ups',   desc: 'Chest to floor, arms extended. No cheat reps!', reward: 20, exercise: 'Push-Ups', reps: 10 },
+  { id: 'rq_squat',  name: '10× Squats',     desc: 'Below parallel counts. Go deep!',               reward: 20, exercise: 'Squats',   reps: 10 },
+  { id: 'rq_pullup', name: '10× Pull-Ups',   desc: 'Dead hang to chin over bar.',                   reward: 20, exercise: 'Pull-Ups', reps: 10 },
+  { id: 'rq_lunge',  name: '10× Lunges',     desc: "10 each leg, that's 20 total. You're welcome.", reward: 20, exercise: 'Lunges',   reps: 10 },
+  { id: 'rq_burpee', name: '10× Burpees',    desc: 'Full burpees. Yes, the jump counts.',           reward: 20, exercise: 'Burpees',  reps: 10 },
+  { id: 'rq_dip',    name: '10× Dips',       desc: 'Tricep dips. Elbows back!',                     reward: 20, exercise: 'Dips',     reps: 10 },
+  { id: 'rq_situp',  name: '10× Sit-Ups',    desc: 'Full range of motion, fingers at temples.',     reward: 20, exercise: 'Sit-Ups',  reps: 10 },
+  { id: 'rq_plank',  name: '60s Plank Hold', desc: 'One minute. Hips level. No sagging!',           reward: 20, exercise: 'Plank',    reps: 1  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+
+// Clear any old saved data on first load of this version
+const SAVE_VERSION = 'v4';
+if (localStorage.getItem('fitgacha_ver') !== SAVE_VERSION) {
+  localStorage.removeItem('fitgacha');
+  localStorage.setItem('fitgacha_ver', SAVE_VERSION);
+}
+
+let state = JSON.parse(localStorage.getItem('fitgacha') || 'null') || {
+  credits: 0,
+  pity5: 0,
+  pity4: 0,
+  sinceLastGuaranteed4: false,
+  history: [],
+  inventory: [],        // { id, rarity, name, emoji, type, desc, qty, redeemed, pulledAt }
+  questProgress: {},
+  questClaimed: {},
+  repeatCompletions: {},
+  totalPulls: 0,
+  total5: 0,
+  total4: 0,
+  totalCredEarned: 0,
+  lastReset: new Date().toDateString(),
+};
+
+// Migrate old saves without inventory
+if (!state.inventory) state.inventory = [];
+
+function save() {
+  localStorage.setItem('fitgacha', JSON.stringify(state));
+}
+
+function checkDailyReset() {
+  const today = new Date().toDateString();
+  if (state.lastReset !== today) {
+    state.lastReset = today;
+    state.questClaimed = {};
+    state.questProgress = {};  // clears daily1, daily2_types, daily3
+    state.repeatCompletions = {};
+    save();
+  }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['quests','gacha','inventory','history'][i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'inventory') renderInventory();
+}
+
+// ============================================================
+// QUESTS RENDERING
+// ============================================================
+function getDailyProgress(q) {
+  if (q.autoKey === 'activation') {
+    return state.questProgress['daily1'] || 0;
+  }
+  if (q.autoKey === 'types') {
+    return new Set(state.questProgress['daily2_types'] || []).size;
+  }
+  if (q.autoKey === 'reps') {
+    return state.questProgress['daily3'] || 0;
+  }
+  return 0;
+}
+
+function renderQuests() {
+  checkDailyReset();
+
+  const dailyGrid = document.getElementById('dailyQuestGrid');
+  const repeatGrid = document.getElementById('repeatableQuestGrid');
+  dailyGrid.innerHTML = '';
+  repeatGrid.innerHTML = '';
+
+  DAILY_QUESTS.forEach(q => {
+    const prog = getDailyProgress(q);
+    const claimed = state.questClaimed[q.id];
+    const pct = Math.min(100, (prog / q.target) * 100);
+    const complete = prog >= q.target;
+    const name = q.name();
+    const windowLabel = q.windowLabel();
+
+    const card = document.createElement('div');
+    card.className = 'quest-card daily';
+
+    const autoTag = `<span class="auto-tag">⚡ Auto-tracked</span>`;
+
+    card.innerHTML = `
+      <div class="quest-header">
+        <div class="quest-name">${name} ${autoTag}</div>
+        <div class="quest-reward">+${q.reward} ✦</div>
+      </div>
+      <div class="quest-desc">${windowLabel}</div>
+      <div class="quest-progress">
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="progress-text">${Math.min(prog, q.target)}/${q.target}</div>
+      </div>
+      ${claimed
+        ? `<button class="quest-btn" disabled>✓ Claimed</button>`
+        : complete
+          ? `<button class="quest-btn claim" onclick="claimQuest('${q.id}', ${q.reward})">Claim ${q.reward} Credits</button>`
+          : `<button class="quest-btn" disabled style="opacity:0.35; cursor:default;">Complete exercises to progress</button>`
+      }
+    `;
+    dailyGrid.appendChild(card);
+  });
+
+  REPEATABLE_QUESTS.forEach(q => {
+    const completions = state.repeatCompletions[q.id] || 0;
+    const card = document.createElement('div');
+    card.className = 'quest-card repeatable';
+    card.innerHTML = `
+      <div class="quest-header">
+        <div class="quest-name">${q.name}</div>
+        <div class="quest-reward">+${q.reward} ✦</div>
+      </div>
+      <div class="quest-desc">${q.desc}</div>
+      <div class="quest-desc" style="color:var(--gold); font-size:0.75rem;">Completed ${completions}× today</div>
+      <button class="quest-btn" onclick="completeRepeatable('${q.id}', ${q.reward})">
+        Mark Complete (+${q.reward} Credits)
+      </button>
+    `;
+    repeatGrid.appendChild(card);
+  });
+}
+
+function claimQuest(id, reward) {
+  if (state.questClaimed[id]) return;
+  state.questClaimed[id] = true;
+  state.credits += reward;
+  state.totalCredEarned += reward;
+  save();
+  renderQuests();
+  updateUI();
+  showToast(`+${reward} Credits earned!`);
+}
+
+// Spam click detection — track timestamps of all repeatable completions globally
+const recentClickTimes = [];
+const SPAM_WINDOW_MS = 5000;
+const SPAM_THRESHOLD = 5;
+let spamCreditsEarned = 0;
+let spamQuestSnapshot = null; // snapshot of quest progress before the spam window
+
+function checkSpam() {
+  const now = Date.now();
+  while (recentClickTimes.length && now - recentClickTimes[0] > SPAM_WINDOW_MS) {
+    recentClickTimes.shift();
+    // If the window slid forward and cleared entries, reset the snapshot too
+    if (recentClickTimes.length === 0) spamQuestSnapshot = null;
+  }
+  // Snapshot BEFORE the first click of a new window — this is the clean baseline
+  if (recentClickTimes.length === 0) {
+    spamQuestSnapshot = JSON.parse(JSON.stringify({
+      questProgress: state.questProgress,
+      repeatCompletions: state.repeatCompletions,
+    }));
+  }
+  recentClickTimes.push(now);
+  return recentClickTimes.length > SPAM_THRESHOLD;
+}
+
+function showHonestyWarning() {
+  // All THRESHOLD clicks that slipped through were credited — claw them all back
+  spamCreditsEarned = SPAM_THRESHOLD * 20;
+  document.getElementById('honestyModal').classList.add('visible');
+}
+
+function closeHonestyModal() {
+  rebukeSpamCredits();
+}
+
+function rebukeSpamCredits() {
+  const rebuke = Math.min(state.credits, spamCreditsEarned);
+  state.credits -= rebuke;
+  state.totalCredEarned = Math.max(0, state.totalCredEarned - rebuke);
+
+  // Restore quest progress and repeat completions to pre-spam-window snapshot
+  if (spamQuestSnapshot) {
+    state.questProgress = spamQuestSnapshot.questProgress;
+    state.repeatCompletions = spamQuestSnapshot.repeatCompletions;
+  }
+
+  recentClickTimes.length = 0;
+  spamCreditsEarned = 0;
+  spamQuestSnapshot = null;
+  save();
+  renderQuests();  // re-render with restored progress
+  updateUI();
+  document.getElementById('honestyModal').classList.remove('visible');
+  if (rebuke > 0) showToast(`🪞 ${rebuke} credits removed. Stay honest! 💙`);
+}
+
+function bypassHonesty() {
+  recentClickTimes.length = 0;
+  spamCreditsEarned = 0;
+  spamQuestSnapshot = null;
+  document.getElementById('honestyModal').classList.remove('visible');
+  showToast('Okay legend. Keep going 💪');
+}
+
+function completeRepeatable(id, reward) {
+  if (checkSpam()) {
+    showHonestyWarning();
+    return;
+  }
+
+  const q = REPEATABLE_QUESTS.find(r => r.id === id);
+  state.repeatCompletions[id] = (state.repeatCompletions[id] || 0) + 1;
+  state.credits += reward;
+  state.totalCredEarned += reward;
+
+  // --- Auto-feed daily quests ---
+
+  // daily1: Activation — first repeatable of the day in any time window
+  if (!state.questClaimed['daily1']) {
+    state.questProgress['daily1'] = Math.min(1, (state.questProgress['daily1'] || 0) + 1);
+  }
+
+  // daily2: Variety Pack — track unique exercise types done today
+  if (!state.questClaimed['daily2']) {
+    const types = new Set(state.questProgress['daily2_types'] || []);
+    types.add(q.exercise);
+    state.questProgress['daily2_types'] = [...types];
+  }
+
+  // daily3: Centurion — accumulate reps (plank = 1 "rep unit", others = 10)
+  if (!state.questClaimed['daily3']) {
+    state.questProgress['daily3'] = Math.min(100, (state.questProgress['daily3'] || 0) + (q.reps || 10));
+  }
+
+  save();
+  renderQuests();
+  updateUI();
+  showToast(`💪 ${q.exercise} done! +${reward} Credits`);
+}
+
+// ============================================================
+// GACHA LOGIC
+// ============================================================
+function rollOne() {
+  state.pity5++;
+  state.pity4++;
+
+  let rarity;
+
+  // Hard pity at 50
+  if (state.pity5 >= 50) {
+    rarity = 5;
+  }
+  // Soft pity: increasing chance after 40 for 5★
+  else if (state.pity5 >= 40) {
+    const softChance = 0.02 + (state.pity5 - 40) * 0.08;
+    rarity = Math.random() < softChance ? 5 : (Math.random() < 0.15 ? 4 : 3);
+  }
+  // 4★ soft pity at 9
+  else if (state.pity4 >= 9) {
+    rarity = Math.random() < 0.5 ? 4 : (Math.random() < 0.02 ? 5 : 3);
+  }
+  else {
+    const r = Math.random();
+    if (r < 0.02) rarity = 5;
+    else if (r < 0.15) rarity = 4;
+    else rarity = 3;
+  }
+
+  if (rarity === 5) {
+    state.pity5 = 0;
+    state.pity4 = 0;
+    state.total5++;
+  } else if (rarity === 4) {
+    state.pity4 = 0;
+    state.total4++;
+  }
+
+  const pool = REWARDS[rarity];
+  const reward = pool[Math.floor(Math.random() * pool.length)];
+  return { rarity, ...reward };
+}
+
+function doPull(count) {
+  const cost = count * 50;
+  if (state.credits < cost) {
+    showToast(`Need ${cost} credits (have ${state.credits})`);
+    return;
+  }
+
+  state.credits -= cost;
+  state.totalPulls += count;
+
+  let results = [];
+  for (let i = 0; i < count; i++) {
+    results.push(rollOne());
+  }
+
+  // Guarantee 4★ in 10-pull
+  if (count === 10 && !results.some(r => r.rarity >= 4)) {
+    const idx = Math.floor(Math.random() * 10);
+    const pool4 = REWARDS[4];
+    const r4 = pool4[Math.floor(Math.random() * pool4.length)];
+    results[idx] = { rarity: 4, ...r4 };
+    state.pity4 = 0;
+    state.total4++;
+  }
+
+  // Add to history + inventory
+  const now = new Date();
+  results.forEach(r => {
+    state.history.unshift({
+      rarity: r.rarity,
+      name: r.name,
+      emoji: r.emoji,
+      type: r.type,
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: now.toLocaleDateString(),
+    });
+    // Add 4★ and 5★ to inventory
+    if (r.rarity >= 4) {
+      const existing = state.inventory.find(i => i.name === r.name && !i.redeemed);
+      if (existing) {
+        existing.qty = (existing.qty || 1) + 1;
+      } else {
+        state.inventory.unshift({
+          id: Date.now() + Math.random(),
+          rarity: r.rarity,
+          name: r.name,
+          emoji: r.emoji,
+          type: r.type,
+          desc: r.desc,
+          qty: 1,
+          redeemed: false,
+          pulledAt: now.toLocaleDateString(),
+        });
+      }
+    }
+  });
+
+  if (state.history.length > 200) state.history = state.history.slice(0, 200);
+
+  save();
+  updateUI();
+  showPullAnimation(results);
+}
+
+// ============================================================
+// PULL ANIMATION
+// ============================================================
+function showPullAnimation(results) {
+  const overlay = document.getElementById('pullOverlay');
+  const container = document.getElementById('pullCardsContainer');
+  const title = document.getElementById('overlayTitle');
+  const bg = document.getElementById('pullBgEffect');
+
+  container.innerHTML = '';
+  title.classList.remove('show');
+  bg.innerHTML = '';
+
+  // Check highest rarity for bg effect
+  const highest = Math.max(...results.map(r => r.rarity));
+  if (highest === 5) {
+    bg.style.background = 'radial-gradient(ellipse at center, rgba(240,192,96,0.15) 0%, transparent 70%)';
+  } else if (highest === 4) {
+    bg.style.background = 'radial-gradient(ellipse at center, rgba(155,89,182,0.15) 0%, transparent 70%)';
+  } else {
+    bg.style.background = '';
+  }
+
+  overlay.classList.add('visible');
+
+  // Animate title
+  setTimeout(() => title.classList.add('show'), 100);
+
+  // Spawn particles for 5★
+  if (highest === 5) spawnParticles(bg);
+
+  // Reveal cards with stagger
+  results.forEach((r, i) => {
+    const card = document.createElement('div');
+    const rarityClass = `star${r.rarity}`;
+    const typeClass = r.type === 'wallet' ? 'badge-wallet' : r.type === 'lol' ? 'badge-lol' : 'badge-health';
+    const typeLabel = r.type === 'wallet' ? 'Wallet' : r.type === 'lol' ? 'lol' : 'Health';
+    const starsStr = '★'.repeat(r.rarity) + '☆'.repeat(5 - r.rarity);
+
+    card.className = `pull-card ${rarityClass}`;
+    card.innerHTML = `
+      <span class="card-type-badge ${typeClass}">${typeLabel}</span>
+      <div class="card-stars" style="color:${r.rarity===5?'var(--gold)':r.rarity===4?'var(--purple-light)':'var(--gray)'}">${starsStr}</div>
+      <div class="card-emoji">${r.emoji}</div>
+      <div class="card-name ${rarityClass}">${r.name}</div>
+    `;
+
+    container.appendChild(card);
+
+    setTimeout(() => {
+      card.classList.add('revealed');
+    }, 150 + i * 120);
+  });
+}
+
+function spawnParticles(container) {
+  const symbols = ['✦', '★', '✧', '✶', '◆'];
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    const angle = Math.random() * 2 * Math.PI;
+    const dist = 100 + Math.random() * 200;
+    p.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+    p.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+    p.style.left = (30 + Math.random() * 40) + '%';
+    p.style.top = (30 + Math.random() * 40) + '%';
+    p.style.color = `hsl(${40 + Math.random() * 20}, 100%, ${60 + Math.random() * 20}%)`;
+    p.style.animationDelay = Math.random() * 0.8 + 's';
+    container.appendChild(p);
+  }
+}
+
+function closePullOverlay() {
+  document.getElementById('pullOverlay').classList.remove('visible');
+}
+
+// ============================================================
+// HISTORY + FILTER
+// ============================================================
+let activeFilter = 'all';
+
+function setFilter(f) {
+  activeFilter = f;
+  // Update button states
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.className = 'filter-btn';
+    if (btn.dataset.filter === f) {
+      if (f === 'all') btn.classList.add('active-all');
+      else if (f === '5') btn.classList.add('active-5');
+      else if (f === '4') btn.classList.add('active-4');
+      else if (f === '3') btn.classList.add('active-3');
+      else if (f === 'wallet') btn.classList.add('active-wallet');
+      else if (f === 'health') btn.classList.add('active-health');
+    }
+  });
+  renderHistory();
+}
+
+function getFilteredHistory() {
+  if (activeFilter === 'all') return state.history;
+  if (activeFilter === '5') return state.history.filter(h => h.rarity === 5);
+  if (activeFilter === '4') return state.history.filter(h => h.rarity === 4);
+  if (activeFilter === '3') return state.history.filter(h => h.rarity === 3);
+  if (activeFilter === 'wallet') return state.history.filter(h => h.type === 'wallet');
+  if (activeFilter === 'health') return state.history.filter(h => h.type === 'health');
+  return state.history;
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+
+  document.getElementById('statTotal').textContent = state.totalPulls;
+  document.getElementById('stat5').textContent = state.total5;
+  document.getElementById('stat4').textContent = state.total4;
+  document.getElementById('statCredEarned').textContent = state.totalCredEarned;
+
+  if (!state.history.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big-icon">📜</div><p>No pulls yet. Complete quests and start wishing!</p></div>`;
+    return;
+  }
+
+  const filtered = getFilteredHistory();
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="no-results">✦ No pulls match this filter yet</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((h, i) => {
+    const cls = `s${h.rarity}`;
+    const stars = '★'.repeat(h.rarity);
+    const isClickable = h.rarity >= 4;
+    const hint = isClickable ? 'clickable-hint' : '';
+    const onclick = isClickable
+      ? `openDetailModal(${state.history.indexOf(h)})`
+      : h.rarity === 3 ? `show3StarToast('${h.emoji}', '${h.name.replace(/'/g,"\\'")}')` : '';
+    return `
+      <div class="history-item ${hint}" onclick="${onclick}">
+        <div class="history-star ${cls}">${stars}</div>
+        <div class="history-emoji">${h.emoji}</div>
+        <div class="history-name">${h.name}</div>
+        <div class="history-time">${h.date} ${h.time}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// DETAIL MODAL
+// ============================================================
+
+const MODAL_FLAVORS = {
+  5: [
+    "You've truly earned this one. 🌟",
+    "Legendary drop. The grind paid off.",
+    "The stars aligned. Claim your reward.",
+    "This is the one. Don't let it go to waste.",
+    "Pure dedication, pure reward. 👑",
+  ],
+  4: [
+    "A solid pull. Make the most of it!",
+    "Not too shabby — treat yourself.",
+    "The universe noticed your effort.",
+    "Hard work, decent reward. Keep pushing.",
+    "A worthy prize for a worthy grinder.",
+  ],
+};
+
+function openDetailModal(idx) {
+  const h = state.history[idx];
+  if (!h) return;
+
+  const modal = document.getElementById('detailModal');
+  const inner = document.getElementById('detailModalInner');
+
+  inner.className = `detail-modal modal-${h.rarity}`;
+  document.getElementById('modalStars').textContent = '★'.repeat(h.rarity) + '☆'.repeat(5 - h.rarity);
+  document.getElementById('modalStars').style.color = h.rarity === 5 ? 'var(--gold)' : 'var(--purple-light)';
+  document.getElementById('modalEmoji').textContent = h.emoji;
+  document.getElementById('modalName').textContent = h.name;
+  document.getElementById('modalName').className = `modal-name s${h.rarity}`;
+
+  const typeBadge = document.getElementById('modalTypeBadge');
+  if (h.type === 'wallet') {
+    typeBadge.textContent = '💰 Wallet Treat';
+    typeBadge.className = 'modal-type-badge badge-wallet';
+  } else if (h.type === 'health') {
+    typeBadge.textContent = '❤️ Health Treat';
+    typeBadge.className = 'modal-type-badge badge-health';
+  } else {
+    typeBadge.textContent = '💬 Motivational';
+    typeBadge.className = 'modal-type-badge badge-lol';
+  }
+
+  // Find the desc from REWARDS data
+  const poolEntry = REWARDS[h.rarity]?.find(r => r.name === h.name);
+  document.getElementById('modalDesc').textContent = poolEntry?.desc || h.desc || '—';
+
+  // Flavor text
+  const flavors = MODAL_FLAVORS[h.rarity] || [];
+  const flavor = flavors[Math.floor(Math.random() * flavors.length)] || '';
+  document.getElementById('modalFlavor').textContent = `"${flavor}"`;
+
+  document.getElementById('modalPulledAt').textContent = `Pulled on ${h.date} at ${h.time}`;
+
+  modal.classList.add('visible');
+}
+
+function closeDetailModal() {
+  document.getElementById('detailModal').classList.remove('visible');
+}
+
+function show3StarToast(emoji, name) {
+  const quips = [
+    `${emoji} "${name}" — groundbreaking stuff.`,
+    `${emoji} Wow. Very inspirational. Much wisdom.`,
+    `${emoji} A quote. A real, actual quote. Incredible.`,
+    `${emoji} The universe is speaking. Mostly filler though.`,
+    `${emoji} You got words. Actual words. Amazing.`,
+  ];
+  showToast(quips[Math.floor(Math.random() * quips.length)]);
+}
+
+// ============================================================
+// INVENTORY
+// ============================================================
+let pendingRedeemId = null;
+
+function renderInventory() {
+  const grid5 = document.getElementById('inv5Grid');
+  const grid4 = document.getElementById('inv4Grid');
+  const gridR = document.getElementById('invRedeemedGrid');
+  const summary = document.getElementById('invSummary');
+
+  const items5 = state.inventory.filter(i => i.rarity === 5 && !i.redeemed);
+  const items4 = state.inventory.filter(i => i.rarity === 4 && !i.redeemed);
+  const redeemed = state.inventory.filter(i => i.redeemed);
+
+  const total5qty = items5.reduce((s, i) => s + (i.qty || 1), 0);
+  const total4qty = items4.reduce((s, i) => s + (i.qty || 1), 0);
+
+  summary.innerHTML = `
+    <div class="inv-summary-chip chip-5">✦ ${total5qty} Legendary unredeemed</div>
+    <div class="inv-summary-chip chip-4">★ ${total4qty} Epic unredeemed</div>
+    <div class="inv-summary-chip chip-redeemed">✓ ${redeemed.reduce((s,i)=>s+(i.qty||1),0)} redeemed total</div>
+  `;
+
+  grid5.innerHTML = items5.length
+    ? items5.map(item => invCardHTML(item)).join('')
+    : `<div class="inv-empty">No legendary coupons yet. Keep pulling!</div>`;
+
+  grid4.innerHTML = items4.length
+    ? items4.map(item => invCardHTML(item)).join('')
+    : `<div class="inv-empty">No epic coupons yet.</div>`;
+
+  gridR.innerHTML = redeemed.length
+    ? redeemed.map(item => invCardHTML(item, true)).join('')
+    : `<div class="inv-empty">Nothing redeemed yet.</div>`;
+}
+
+function invCardHTML(item, isRedeemed = false) {
+  const rarityClass = isRedeemed ? 'inv-redeemed' : `inv-${item.rarity}`;
+  const nameClass = isRedeemed ? 'n-redeemed' : `n${item.rarity}`;
+  const stars = '★'.repeat(item.rarity) + '☆'.repeat(5 - item.rarity);
+  const starColor = item.rarity === 5 ? 'var(--gold)' : 'var(--purple-light)';
+  const qty = item.qty || 1;
+
+  const actionHTML = isRedeemed
+    ? `<div class="inv-redeemed-stamp">✓ Redeemed ×${qty}</div>`
+    : `<button class="inv-redeem-btn" onclick="openRedeemModal('${item.id}'); event.stopPropagation();">Redeem Coupon</button>`;
+
+  const qtyBadge = !isRedeemed && qty > 1
+    ? `<div class="inv-card-qty qty-${item.rarity}">×${qty}</div>`
+    : '';
+
+  return `
+    <div class="inv-card ${rarityClass}" onclick="${!isRedeemed ? `openRedeemModal('${item.id}')` : ''}">
+      <div class="inv-card-shine"></div>
+      ${qtyBadge}
+      <div class="inv-card-stars" style="color:${starColor}">${stars}</div>
+      <span class="inv-card-emoji">${item.emoji}</span>
+      <div class="inv-card-name ${nameClass}">${item.name}</div>
+      ${actionHTML}
+    </div>
+  `;
+}
+
+function openRedeemModal(id) {
+  const item = state.inventory.find(i => String(i.id) === String(id));
+  if (!item || item.redeemed) return;
+
+  pendingRedeemId = id;
+
+  const modal = document.getElementById('redeemModal');
+  const inner = document.getElementById('redeemModalInner');
+  inner.className = `detail-modal modal-${item.rarity}`;
+
+  document.getElementById('redeemStars').textContent = '★'.repeat(item.rarity) + '☆'.repeat(5 - item.rarity);
+  document.getElementById('redeemStars').style.color = item.rarity === 5 ? 'var(--gold)' : 'var(--purple-light)';
+  document.getElementById('redeemEmoji').textContent = item.emoji;
+  document.getElementById('redeemName').textContent = item.name;
+  document.getElementById('redeemName').className = `modal-name s${item.rarity}`;
+
+  const typeBadge = document.getElementById('redeemTypeBadge');
+  if (item.type === 'wallet') {
+    typeBadge.textContent = '💰 Wallet Treat';
+    typeBadge.className = 'modal-type-badge badge-wallet';
+  } else {
+    typeBadge.textContent = '❤️ Health Treat';
+    typeBadge.className = 'modal-type-badge badge-health';
+  }
+
+  document.getElementById('redeemDesc').textContent = item.desc || '—';
+
+  const qtyNote = (item.qty || 1) > 1 ? ` You have ×${item.qty} of this — redeeming one.` : '';
+  document.getElementById('redeemFlavor').textContent = `Pulled on ${item.pulledAt}.${qtyNote}`;
+
+  modal.classList.add('visible');
+}
+
+function closeRedeemModal() {
+  document.getElementById('redeemModal').classList.remove('visible');
+  pendingRedeemId = null;
+}
+
+function confirmRedeem() {
+  const item = state.inventory.find(i => String(i.id) === String(pendingRedeemId));
+  if (!item) return;
+
+  if ((item.qty || 1) > 1) {
+    item.qty--;
+    // Add a separate redeemed entry
+    const existing = state.inventory.find(i => i.name === item.name && i.redeemed);
+    if (existing) {
+      existing.qty = (existing.qty || 0) + 1;
+    } else {
+      state.inventory.push({
+        id: Date.now() + Math.random(),
+        rarity: item.rarity,
+        name: item.name,
+        emoji: item.emoji,
+        type: item.type,
+        desc: item.desc,
+        qty: 1,
+        redeemed: true,
+        pulledAt: item.pulledAt,
+        redeemedAt: new Date().toLocaleDateString(),
+      });
+    }
+  } else {
+    item.redeemed = true;
+    item.redeemedAt = new Date().toLocaleDateString();
+  }
+
+  save();
+  document.getElementById('redeemModal').classList.remove('visible');
+  pendingRedeemId = null;
+  renderInventory();
+  updateUI();
+  showToast(`✓ ${item.emoji} "${item.name}" redeemed! Enjoy it!`);
+}
+
+// ============================================================
+// UI UPDATE
+// ============================================================
+function updateUI() {
+  document.getElementById('creditsDisplay').textContent = state.credits;
+  document.getElementById('pity5Display').textContent = `${state.pity5}/50`;
+  document.getElementById('pity4Display').textContent = `${state.pity4}/10`;
+
+  document.getElementById('pityBar5').style.width = (state.pity5 / 50 * 100) + '%';
+  document.getElementById('pityBar4').style.width = (state.pity4 / 10 * 100) + '%';
+  document.getElementById('pityCount5').textContent = `${state.pity5} / 50`;
+  document.getElementById('pityCount4').textContent = `${state.pity4} / 10`;
+
+  // Inventory badge
+  const unredeemed = state.inventory.filter(i => !i.redeemed).reduce((s, i) => s + (i.qty || 1), 0);
+  const badge = document.getElementById('invBadge');
+  if (unredeemed > 0) {
+    badge.textContent = unredeemed;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// DEBUG & RESET
+// ============================================================
+function debugAddCredits() {
+  state.credits += 500;
+  state.totalCredEarned += 500;
+  save();
+  updateUI();
+  showToast('🛠 +500 debug credits added');
+}
+
+function openResetModal() {
+  document.getElementById('resetModal').classList.add('visible');
+}
+
+function closeResetModal() {
+  document.getElementById('resetModal').classList.remove('visible');
+}
+
+function confirmReset() {
+  localStorage.removeItem('fitgacha');
+  state = {
+    credits: 0, pity5: 0, pity4: 0,
+    sinceLastGuaranteed4: false,
+    history: [], inventory: [],
+    questProgress: {}, questClaimed: {}, repeatCompletions: {},
+    totalPulls: 0, total5: 0, total4: 0, totalCredEarned: 0,
+    lastReset: new Date().toDateString(),
+  };
+  save();
+  document.getElementById('resetModal').classList.remove('visible');
+  activeFilter = 'all';
+  switchTab('quests');
+  renderQuests();
+  updateUI();
+  showToast('🗑 All data wiped. Fresh start!');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+checkDailyReset();
+renderQuests();
+updateUI();
+</script>
+</body>
+</html>
